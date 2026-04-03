@@ -32,11 +32,25 @@ app.post("/chat", async (req, res) => {
 
     const data = await response.json();
 
-    const reply =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "Xin lỗi, tôi chưa trả lời được.";
+// debug để xem lỗi thật
+console.log("STATUS:", response.status);
+console.log("DATA:", JSON.stringify(data, null, 2));
 
-    res.json({ reply });
+if (!response.ok) {
+  return res.json({
+    reply: "API lỗi: " + (data.error?.message || "Unknown error")
+  });
+}
+
+const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+if (!reply) {
+  return res.json({
+    reply: "Không có dữ liệu trả về (có thể sai API key hoặc hết quota)"
+  });
+}
+
+res.json({ reply });
 
   } catch (error) {
     res.json({ reply: "Lỗi kết nối API Gemini 😢" });
