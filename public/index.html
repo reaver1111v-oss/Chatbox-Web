@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chatbot AI</title>
+</head>
+<body>
+  <h2>Chatbot AI</h2>
+
+  <div id="chat"></div>
+
+  <input id="msg" placeholder="Nhập tin nhắn...">
+  <button onclick="send()">Gửi</button>
+
+<script>
+const sessionId = localStorage.getItem("sessionId") || Date.now();
+localStorage.setItem("sessionId", sessionId);
+
+// load lịch sử khi mở web
+async function loadHistory(){
+  const res = await fetch("/history/" + sessionId);
+  const data = await res.json();
+
+  data.forEach(item => {
+    add("Bạn: " + item.user);
+    add("Bot: " + item.bot);
+  });
+}
+
+function add(text){
+  document.getElementById("chat").innerHTML += "<p>"+text+"</p>";
+}
+
+async function send(){
+  const msg = document.getElementById("msg").value;
+  add("Bạn: " + msg);
+
+  const res = await fetch("/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ message: msg, sessionId })
+  });
+
+  const data = await res.json();
+  add("Bot: " + data.reply);
+}
+
+loadHistory();
+</script>
+</body>
+</html>
