@@ -63,6 +63,14 @@ body {
   padding: 10px 15px;
   border-radius: 15px;
   max-width: 70%;
+
+  /* FIX TRÀN CHỮ */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  /* giữ xuống dòng */
+  white-space: pre-wrap;
 }
 
 .user .bubble {
@@ -165,11 +173,15 @@ function addMessage(text, type){
 
 // typing animation
 function typeText(element, text){
+  element.innerText = "";
   let i = 0;
+
+  const chars = [...text]; // FIX Unicode
+
   const interval = setInterval(() => {
-    element.innerText += text[i];
+    element.innerText += chars[i];
     i++;
-    if(i >= text.length) clearInterval(interval);
+    if(i >= chars.length) clearInterval(interval);
   }, 15);
 }
 
