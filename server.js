@@ -1,50 +1,48 @@
 const express = require("express");
-const fs = require("fs");
+const fetch = require("node-fetch");
 
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-const FILE = "chat_history.json";
+app.post("/chat", async (req, res) => {
+  const { message } = req.body;
 
-// đọc dữ liệu
-function loadData() {
-  if (!fs.existsSync(FILE)) return {};
-  return JSON.parse(fs.readFileSync(FILE));
-}
+  try {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + process.env.GEMINI_API_KEY,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: "Trả lời bằng tiếng Việt dễ hiểu: " + message
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
 
-// ghi dữ liệu
-function saveData(data) {
-  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
-}
+    const data = await response.json();
 
-// API chat
-app.post("/chat", (req, res) => {
-  const { message, sessionId } = req.body;
-  let data = loadData();
+    const reply =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "Xin lỗi, tôi chưa trả lời được.";
 
-  if (!data[sessionId]) data[sessionId] = [];
+    res.json({ reply });
 
-  let reply = "Tôi chưa hiểu.";
-  if (message.toLowerCase().includes("xin chào")) reply = "Chào bạn!";
-  else if (message.toLowerCase().includes("ai")) reply = "AI là trí tuệ nhân tạo.";
-
-  // lưu lịch sử
-  data[sessionId].push({
-    user: message,
-    bot: reply
-  });
-
-  saveData(data);
-
-  res.json({ reply });
+  } catch (error) {
+    res.json({ reply: "Lỗi kết nối Gemini 😢" });
+  }
 });
 
-// API lấy lịch sử
-app.get("/history/:sessionId", (req, res) => {
-  const data = loadData();
-  res.json(data[req.params.sessionId] || []);
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server running");
 });
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Running on " + PORT));
