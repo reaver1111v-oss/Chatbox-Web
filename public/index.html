@@ -1,50 +1,143 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-  <title>Chatbot AI</title>
+<meta charset="UTF-8">
+<title>Gemini Chatbot</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #343541;
+  display: flex;
+  justify-content: center;
+}
+
+.chat-container {
+  width: 500px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 15px;
+  background: #202123;
+  color: white;
+  text-align: center;
+}
+
+#chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.user {
+  justify-content: flex-end;
+}
+
+.bot {
+  justify-content: flex-start;
+}
+
+.bubble {
+  padding: 10px 15px;
+  border-radius: 10px;
+  max-width: 70%;
+}
+
+.user .bubble {
+  background: #19c37d;
+  color: black;
+}
+
+.bot .bubble {
+  background: #444654;
+  color: white;
+}
+
+.input-area {
+  display: flex;
+  padding: 10px;
+  background: #202123;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  margin-left: 10px;
+  padding: 10px;
+  background: #19c37d;
+  border: none;
+  border-radius: 5px;
+}
+</style>
 </head>
+
 <body>
-  <h2>Chatbot AI</h2>
+
+<div class="chat-container">
+  <div class="header">🤖 Gemini Chatbot</div>
 
   <div id="chat"></div>
 
-  <input id="msg" placeholder="Nhập tin nhắn...">
-  <button onclick="send()">Gửi</button>
+  <div class="input-area">
+    <input id="msg" placeholder="Nhập tin nhắn...">
+    <button onclick="send()">Gửi</button>
+  </div>
+</div>
 
 <script>
-const sessionId = localStorage.getItem("sessionId") || Date.now();
-localStorage.setItem("sessionId", sessionId);
+function addMessage(text, type){
+  const chat = document.getElementById("chat");
 
-// load lịch sử khi mở web
-async function loadHistory(){
-  const res = await fetch("/history/" + sessionId);
-  const data = await res.json();
+  const div = document.createElement("div");
+  div.className = "message " + type;
 
-  data.forEach(item => {
-    add("Bạn: " + item.user);
-    add("Bot: " + item.bot);
-  });
-}
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerText = text;
 
-function add(text){
-  document.getElementById("chat").innerHTML += "<p>"+text+"</p>";
+  div.appendChild(bubble);
+  chat.appendChild(div);
+
+  chat.scrollTop = chat.scrollHeight;
 }
 
 async function send(){
-  const msg = document.getElementById("msg").value;
-  add("Bạn: " + msg);
+  const input = document.getElementById("msg");
+  const msg = input.value;
 
-  const res = await fetch("/chat",{
+  if (!msg) return;
+
+  addMessage(msg, "user");
+  addMessage("Đang trả lời...", "bot");
+
+  const res = await fetch("/chat", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ message: msg, sessionId })
+    body:JSON.stringify({ message: msg })
   });
 
   const data = await res.json();
-  add("Bot: " + data.reply);
-}
 
-loadHistory();
+  document.getElementById("chat").lastChild.remove();
+  addMessage(data.reply, "bot");
+
+  input.value = "";
+}
 </script>
+
 </body>
 </html>
