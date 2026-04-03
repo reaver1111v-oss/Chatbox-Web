@@ -10,7 +10,7 @@ app.post("/chat", async (req, res) => {
 
   try {
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + process.env.GEMINI_API_KEY,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + process.env.GEMINI_API_KEY,
       {
         method: "POST",
         headers: {
@@ -39,7 +39,7 @@ app.post("/chat", async (req, res) => {
     res.json({ reply });
 
   } catch (error) {
-    res.json({ reply: "Lỗi kết nối Gemini 😢" });
+    res.json({ reply: "Lỗi kết nối API Gemini 😢" });
   }
 });
 
